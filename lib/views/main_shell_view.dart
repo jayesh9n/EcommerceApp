@@ -5,7 +5,9 @@ import '../controllers/providers.dart';
 import 'home_screen.dart';
 import 'categories_screen.dart';
 import 'search_screen.dart';
-import 'checkout_screen.dart';
+import 'wishlist_screen.dart';
+import 'account_screen.dart';
+import 'cart_screen.dart';
 
 class MainShellView extends ConsumerStatefulWidget {
   const MainShellView({super.key});
@@ -23,15 +25,14 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
     HomeScreen(),
     CategoriesScreen(),
     SearchScreen(),
-    Center(child: Text('Wishlist Page', style: TextStyle(fontSize: 18, color: Colors.grey))),
-    Center(child: Text('Account Page', style: TextStyle(fontSize: 18, color: Colors.grey))),
+    WishlistScreen(),
+    AccountScreen(),
   ];
 
   final _currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 2);
 
   @override
   Widget build(BuildContext context) {
-    final cartItems = ref.watch(cartProvider);
     final totalCount = ref.watch(cartTotalCountProvider);
     final totalPrice = ref.watch(cartTotalPriceProvider);
 
@@ -49,7 +50,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
               margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF111827), // Dark elegant container
+                color: const Color(0xFF111827),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
                   BoxShadow(
@@ -69,7 +70,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
                         _currencyFormat.format(totalPrice),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -78,7 +79,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
                         '$totalCount ${totalCount == 1 ? 'item' : 'items'} • $totalCount ${totalCount == 1 ? 'quantity' : 'quantities'}',
                         style: const TextStyle(
                           color: Colors.white70,
-                          fontSize: 12,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -88,7 +89,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const CheckoutScreen(),
+                          builder: (context) => const CartScreen(),
                         ),
                       );
                     },
@@ -96,7 +97,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
                       backgroundColor: primaryGreen,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -106,7 +107,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
                       children: [
                         Text(
                           'View Cart',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         SizedBox(width: 6),
                         Icon(Icons.arrow_forward, size: 16),
@@ -117,7 +118,7 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
               ),
             ),
 
-          // 5-Tab Navigation Bar
+          // 5-Tab Navigation Bar matching Reference Screenshots
           BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
@@ -125,8 +126,9 @@ class _MainShellViewState extends ConsumerState<MainShellView> {
             backgroundColor: Colors.white,
             selectedItemColor: primaryGreen,
             unselectedItemColor: const Color(0xFF9CA3AF),
-            selectedFontSize: 12,
-            unselectedFontSize: 12,
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),

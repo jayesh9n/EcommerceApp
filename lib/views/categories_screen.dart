@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/providers.dart';
+import 'product_list_screen.dart';
 
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
@@ -15,9 +16,21 @@ class CategoriesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: const Text(
-          'All Categories',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          'Categories',
+          style: TextStyle(
+            color: Color(0xFF111827),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         centerTitle: true,
       ),
@@ -25,39 +38,33 @@ class CategoriesScreen extends ConsumerWidget {
         data: (categories) => GridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 14,
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
             mainAxisSpacing: 16,
-            childAspectRatio: 0.88,
+            childAspectRatio: 0.75,
           ),
           itemCount: categories.length,
           itemBuilder: (context, index) {
             final category = categories[index];
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x08000000),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  )
-                ],
-              ),
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductListScreen(categoryTitle: category.name),
+                  ),
+                );
+              },
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
                     child: Container(
-                      margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         child: category.imageUrl.isNotEmpty
                             ? CachedNetworkImage(
                                 imageUrl: category.imageUrl,
@@ -66,36 +73,31 @@ class CategoriesScreen extends ConsumerWidget {
                                   child: CircularProgressIndicator(color: primaryGreen, strokeWidth: 2),
                                 ),
                                 errorWidget: (context, url, error) =>
-                                    const Icon(Icons.hardware, color: primaryGreen, size: 40),
+                                    const Icon(Icons.hardware, color: primaryGreen, size: 32),
                               )
-                            : const Icon(Icons.hardware, color: primaryGreen, size: 40),
+                            : const Icon(Icons.hardware, color: primaryGreen, size: 32),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12, top: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Color(0xFF111827),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${category.subCount} ${category.subCount == 1 ? 'Category' : 'Categories'}',
-                          style: const TextStyle(
-                            color: Color(0xFF6B7280),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 8),
+                  Text(
+                    category.name,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${category.subCount} ${category.subCount == 1 ? 'Category' : 'Categories'}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontSize: 11,
                     ),
                   ),
                 ],
