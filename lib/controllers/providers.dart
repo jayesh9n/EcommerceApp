@@ -73,30 +73,70 @@ final cartTotalCountProvider = Provider<int>((ref) {
 
 // --- AUTH STATE MANAGEMENT ---
 
-final authStateProvider = StreamProvider<AuthState>((ref) {
-  return Supabase.instance.client.auth.onAuthStateChange;
-});
-
 class AuthNotifier extends StateNotifier<User?> {
-  AuthNotifier() : super(Supabase.instance.client.auth.currentUser) {
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      state = data.session?.user;
-    });
+  AuthNotifier() : super(null) {
+    try {
+      final client = Supabase.instance.client;
+      // Restore session on app start
+      state = client.auth.currentSession?.user ?? client.auth.currentUser;
+      client.auth.onAuthStateChange.listen((data) {
+        state = data.session?.user;
+      });
+    } catch (_) {
+      // Supabase not initialized — state remains null
+    }
   }
 
-  Future<AuthResponse> signIn(String email, String password) async {
-    return await Supabase.instance.client.auth.signInWithPassword(
+  // ── Phone OTP ─────────────────────────────────────────────────────────────
+
+  /// Step 1 — Request OTP. Call with full phone like '+919876543210'.
+  Future<void> sendOtp(String phone) async {
+    await Supabase.instance.client.auth.signInWithOtp(phone: phone);
+  }
+
+  /// Step 2 — Verify OTP. On success: sets state, upserts profile.
+  Future<void> verifyOtp(String phone, String token) async {
+    final res = await Supabase.instance.client.auth.verifyOTP(
+      phone: phone,
+      token: token,
+      type: OtpType.sms,
+    );
+    state = res.user;
+    if (res.user != null) await _upsertProfile(res.user!);
+  }
+
+  /// Upsert a minimal profile row after successful auth.
+  Future<void> _upsertProfile(User user) async {
+    try {
+      await Supabase.instance.client.from('profiles').upsert({
+        'id': user.id,
+        'phone': user.phone,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'id');
+    } catch (_) {
+      // Non-critical — table may not exist yet; ignore silently
+    }
+  }
+
+  // ── Email Auth (Legacy compatibility) ────────────────────────────────────
+
+  Future<void> signIn(String email, String password) async {
+    final res = await Supabase.instance.client.auth.signInWithPassword(
       email: email,
       password: password,
     );
+    state = res.user;
   }
 
-  Future<AuthResponse> signUp(String email, String password) async {
-    return await Supabase.instance.client.auth.signUp(
+  Future<void> signUp(String email, String password) async {
+    final res = await Supabase.instance.client.auth.signUp(
       email: email,
       password: password,
     );
+    state = res.user;
   }
+
+  // ── Sign Out ──────────────────────────────────────────────────────────────
 
   Future<void> signOut() async {
     await Supabase.instance.client.auth.signOut();
@@ -108,7 +148,9 @@ final authProvider = StateNotifierProvider<AuthNotifier, User?>((ref) {
   return AuthNotifier();
 });
 
-/// Provider for current logged-in user
-final currentUserProvider = Provider<User?>((ref) {
-  return ref.watch(authProvider);
-});
+/// Convenience provider — current logged-in user.
+final currentUserProvider = Provider<User?>((ref) => ref.watch(authProvider));
+
+
+
+

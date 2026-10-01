@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../controllers/providers.dart';
 import 'addresses_screen.dart';
 import 'notifications_screen.dart';
 import 'orders_screen.dart';
@@ -77,6 +78,21 @@ class AccountScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authProvider);
+
+    // Phone from Supabase phone auth, e.g. "+919876543210"
+    final rawPhone = user?.phone ?? '';
+    final displayPhone = rawPhone.isNotEmpty
+        ? _formatPhone(rawPhone)
+        : (user?.email ?? 'Not signed in');
+
+    // Display name: from metadata, or derive from phone digits
+    final displayName = (user?.userMetadata?['full_name'] as String?)?.isNotEmpty == true
+        ? user!.userMetadata!['full_name'] as String
+        : (rawPhone.length >= 12
+            ? rawPhone.substring(rawPhone.length - 10, rawPhone.length - 5)
+            : 'User');
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -127,15 +143,15 @@ class AccountScreen extends ConsumerWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Jayesh',
+                      children: [
+                        const Text(
+                          'Hiranix Account',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          'jayesh9n@gmail.com',
-                          style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+                          displayPhone,
+                          style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
                         ),
                       ],
                     ),
@@ -326,9 +342,63 @@ class AccountScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Sign Out Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Sign Out'),
+                      content: const Text('Are you sure you want to sign out?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: const Text('Sign Out'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    await ref.read(authProvider.notifier).signOut();
+                  }
+                },
+                icon: const Icon(Icons.logout, size: 18),
+                label: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red, width: 1),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
+  }
+
+  /// Formats +919876543210 → +91 98765 43210
+  String _formatPhone(String phone) {
+    if (phone.startsWith('+91') && phone.length == 13) {
+      final digits = phone.substring(3);
+      return '+91 ${digits.substring(0, 5)} ${digits.substring(5)}';
+    }
+    return phone;
   }
 }
