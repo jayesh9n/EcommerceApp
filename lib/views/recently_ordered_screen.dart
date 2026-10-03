@@ -11,6 +11,7 @@ class RecentlyOrderedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final wishlistedProducts = ref.watch(wishlistProvider);
     // Mock product list for recently ordered
     final recentProducts = const [
       Product(
@@ -55,6 +56,7 @@ class RecentlyOrderedScreen extends ConsumerWidget {
         itemCount: recentProducts.length,
         itemBuilder: (context, index) {
           final product = recentProducts[index];
+          final isWishlisted = wishlistedProducts.any((p) => p.id == product.id);
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -118,13 +120,29 @@ class RecentlyOrderedScreen extends ConsumerWidget {
                         Positioned(
                           top: 12,
                           right: 12,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
+                          child: GestureDetector(
+                            onTap: () {
+                              ref.read(wishlistProvider.notifier).toggleWishlist(product);
+                              final isAdded = ref.read(wishlistProvider.notifier).isWishlisted(product.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(isAdded ? 'Added to wishlist' : 'Removed from wishlist'),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                color: isWishlisted ? Colors.red : primaryGreen,
+                                size: 16,
+                              ),
                             ),
-                            child: const Icon(Icons.favorite_border, color: primaryGreen, size: 16),
                           ),
                         ),
                         // + Add Button on image

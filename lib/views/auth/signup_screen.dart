@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../controllers/providers.dart';
+import '../main_shell_view.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -54,6 +55,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
     _phoneController.dispose();
     _companyController.dispose();
     super.dispose();
+  }
+
+  void _handleSkip() {
+    ref.read(isGuestProvider.notifier).state = true;
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainShellView()),
+        (route) => false,
+      );
+    }
   }
 
   Future<void> _handleSignup() async {
@@ -123,6 +136,27 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Top Header Bar with Skip ──────────────────────────
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: TextButton(
+                      onPressed: _handleSkip,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Skip', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w600)),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 13),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
                   // Header
                   Center(
                     child: Column(
@@ -329,6 +363,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
                           child: const Text('Sign in', style: TextStyle(color: primaryGreen, fontSize: 14, fontWeight: FontWeight.bold)),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _handleSkip,
+                      icon: const Icon(Icons.shopping_bag_outlined, color: primaryGreen, size: 18),
+                      label: const Text(
+                        'Skip & Explore as Guest',
+                        style: TextStyle(
+                          color: primaryGreen,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

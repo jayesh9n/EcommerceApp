@@ -35,6 +35,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(searchProductsProvider);
+    final wishlistedProducts = ref.watch(wishlistProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -98,6 +99,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
+                      final isWishlisted = wishlistedProducts.any((p) => p.id == product.id);
 
                       return GestureDetector(
                         onTap: () {
@@ -162,18 +164,34 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                       ),
                                     ),
                                     // Heart Icon
-                                    Positioned(
-                                      top: 10,
-                                      right: 10,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(3),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.favorite_border, color: SearchScreen.primaryGreen, size: 14),
-                                      ),
-                                    ),
+                                     Positioned(
+                                       top: 10,
+                                       right: 10,
+                                       child: GestureDetector(
+                                         onTap: () {
+                                           ref.read(wishlistProvider.notifier).toggleWishlist(product);
+                                           final isAdded = ref.read(wishlistProvider.notifier).isWishlisted(product.id);
+                                           ScaffoldMessenger.of(context).showSnackBar(
+                                             SnackBar(
+                                               content: Text(isAdded ? 'Added to wishlist' : 'Removed from wishlist'),
+                                               duration: const Duration(seconds: 1),
+                                             ),
+                                           );
+                                         },
+                                         child: Container(
+                                           padding: const EdgeInsets.all(3),
+                                           decoration: const BoxDecoration(
+                                             color: Colors.white,
+                                             shape: BoxShape.circle,
+                                           ),
+                                           child: Icon(
+                                             isWishlisted ? Icons.favorite : Icons.favorite_border,
+                                             color: isWishlisted ? Colors.red : SearchScreen.primaryGreen,
+                                             size: 14,
+                                           ),
+                                         ),
+                                       ),
+                                     ),
                                     // + Add Button
                                     Positioned(
                                       bottom: -6,

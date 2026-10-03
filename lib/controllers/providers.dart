@@ -3,15 +3,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 import '../services/supabase_service.dart';
 
+import 'admin_providers.dart';
+
 // --- SERVICE PROVIDERS ---
 
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
   return SupabaseService();
 });
 
-final categoriesProvider = FutureProvider<List<Category>>((ref) async {
-  final service = ref.watch(supabaseServiceProvider);
-  return service.getCategories();
+final categoriesProvider = Provider<List<Category>>((ref) {
+  return ref.watch(adminCategoriesProvider);
+});
+
+final productsProvider = Provider<List<Product>>((ref) {
+  return ref.watch(adminProductsProvider);
 });
 
 // --- CART STATE MANAGEMENT ---
@@ -150,6 +155,40 @@ final authProvider = StateNotifierProvider<AuthNotifier, User?>((ref) {
 
 /// Convenience provider — current logged-in user.
 final currentUserProvider = Provider<User?>((ref) => ref.watch(authProvider));
+
+/// Provider to track if user chose to skip login and browse as a guest.
+final isGuestProvider = StateProvider<bool>((ref) => false);
+
+// --- WISHLIST STATE MANAGEMENT ---
+
+class WishlistNotifier extends StateNotifier<List<Product>> {
+  WishlistNotifier() : super([]);
+
+  bool isWishlisted(String productId) {
+    return state.any((item) => item.id == productId);
+  }
+
+  void toggleWishlist(Product product) {
+    if (isWishlisted(product.id)) {
+      state = state.where((item) => item.id != product.id).toList();
+    } else {
+      state = [...state, product];
+    }
+  }
+
+  void removeFromWishlist(String productId) {
+    state = state.where((item) => item.id != productId).toList();
+  }
+
+  void clearWishlist() {
+    state = [];
+  }
+}
+
+final wishlistProvider = StateNotifierProvider<WishlistNotifier, List<Product>>((ref) {
+  return WishlistNotifier();
+});
+
 
 
 

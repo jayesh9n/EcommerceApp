@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../controllers/providers.dart';
+import '../main_shell_view.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   final String phone;
@@ -40,6 +41,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
         .animate(CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic));
     _animController.forward();
     _startCountdown();
+  }
+
+  void _handleSkip() {
+    ref.read(isGuestProvider.notifier).state = true;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const MainShellView()),
+      (route) => false,
+    );
   }
 
   void _startCountdown() {
@@ -201,6 +210,20 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          TextButton(
+            onPressed: _handleSkip,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Skip', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w600)),
+                SizedBox(width: 4),
+                Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 13),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: FadeTransition(

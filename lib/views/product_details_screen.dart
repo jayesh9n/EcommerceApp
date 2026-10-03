@@ -22,6 +22,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final cartItems = ref.watch(cartProvider);
+    final isWishlisted = ref.watch(wishlistProvider).any((p) => p.id == widget.product.id);
     final cartItemIndex = cartItems.indexWhere((item) => item.product.id == widget.product.id);
     final currentQty = cartItemIndex >= 0 ? cartItems[cartItemIndex].quantity : 0;
     final discountAmount = widget.product.mrp - widget.product.sellingPrice;
@@ -64,8 +65,20 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.favorite_border, color: ProductDetailsScreen.primaryGreen),
-                      onPressed: () {},
+                      icon: Icon(
+                        isWishlisted ? Icons.favorite : Icons.favorite_border,
+                        color: isWishlisted ? Colors.red : ProductDetailsScreen.primaryGreen,
+                      ),
+                      onPressed: () {
+                        ref.read(wishlistProvider.notifier).toggleWishlist(widget.product);
+                        final isAdded = ref.read(wishlistProvider.notifier).isWishlisted(widget.product.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isAdded ? 'Added to wishlist' : 'Removed from wishlist'),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

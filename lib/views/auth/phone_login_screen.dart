@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../controllers/providers.dart';
+import '../main_shell_view.dart';
 import 'otp_verification_screen.dart';
 
 class PhoneLoginScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,18 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
     _animController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _handleSkip() {
+    ref.read(isGuestProvider.notifier).state = true;
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainShellView()),
+        (route) => false,
+      );
+    }
   }
 
   Future<void> _sendOtp() async {
@@ -104,6 +117,27 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
               child: Column(
                 children: [
+                  // ── Top Header Bar with Skip ──────────────────────────
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: TextButton(
+                      onPressed: _handleSkip,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Skip', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w600)),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 13),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
                   // ── Brand Header ──────────────────────────────────────
                   Center(
                     child: Column(
@@ -128,7 +162,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 36),
 
                   // ── Form Card ─────────────────────────────────────────
                   Container(
@@ -268,6 +302,21 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _handleSkip,
+                      icon: const Icon(Icons.shopping_bag_outlined, color: primaryGreen, size: 18),
+                      label: const Text(
+                        'Skip & Explore as Guest',
+                        style: TextStyle(
+                          color: primaryGreen,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

@@ -15,7 +15,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categoriesAsync = ref.watch(categoriesProvider);
+    final categories = ref.watch(categoriesProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -241,8 +241,50 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   // 4 Columns Grid Layout for Categories
-                  categoriesAsync.when(
-                    data: (categories) => GridView.builder(
+                  if (categories.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.category_outlined, size: 44, color: Color(0xFF9CA3AF)),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'No Categories Available',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF111827)),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Add categories from the Admin Portal to populate your store.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                          ),
+                          const SizedBox(height: 14),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const AdminShellView()),
+                              );
+                            },
+                            icon: const Icon(Icons.shield_outlined, size: 16),
+                            label: const Text('Open Admin Portal', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -259,7 +301,10 @@ class HomeScreen extends ConsumerWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ProductListScreen(categoryTitle: category.name),
+                                builder: (context) => ProductListScreen(
+                                  categoryId: category.id,
+                                  categoryTitle: category.name,
+                                ),
                               ),
                             );
                           },
@@ -305,14 +350,6 @@ class HomeScreen extends ConsumerWidget {
                         );
                       },
                     ),
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: CircularProgressIndicator(color: primaryGreen),
-                      ),
-                    ),
-                    error: (err, stack) => Center(child: Text('Error: $err')),
-                  ),
                 ],
               ),
             ),

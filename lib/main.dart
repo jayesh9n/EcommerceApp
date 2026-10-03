@@ -60,10 +60,11 @@ class AuthGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider);
+    final isGuest = ref.watch(isGuestProvider);
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 400),
       transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
-      child: user != null
+      child: (user != null || isGuest)
           ? const MainShellView(key: ValueKey('shell'))
           : const PhoneLoginScreen(key: ValueKey('phone-login')),
     );
